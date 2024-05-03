@@ -5,23 +5,10 @@ require("dotenv").config();
 
 const connection = mysql.createConnection({
   host: "localhost",
-  //   port: 8889,
-  user: "root",
-  password: "password",
-  database: "workforce_db",
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
-
-// const connection = mysql.createConnection(
-//   {
-//     host: "localhost",
-//     // MySQL username,
-//     user: "root",
-//     // TODO: Add MySQL password here
-//     password: "password",
-//     database: "workforce_db",
-//   },
-//   console.log(`Connected to the workforce_db database.`)
-// );
 
 connection.connect((err) => {
   if (err) throw err;
@@ -36,37 +23,37 @@ function startApp() {
       type: "list",
       message: "What would you like to do?",
       choices: [
-        "View all departments",
-        "View all roles",
-        "View all employees",
-        "Add department",
-        "Add role",
-        "Add employee",
-        "Update employee",
+        "View All Departments",
+        "View All Roles",
+        "View All Employees",
+        "Add Department",
+        "Add Role",
+        "Add Employee",
+        "Update Employee Role",
         "Exit",
       ],
     })
     .then(({ action }) => {
       switch (action) {
-        case "View all employees":
+        case "View All Employees":
           viewAllEmployee();
           break;
-        case "View all departments":
+        case "View All Departments":
           viewDepartment();
           break;
-        case "View all roles":
+        case "View All Roles":
           viewRoles();
           break;
-        case "Add department":
+        case "Add Department":
           addDepartment();
           break;
-        case "Add role":
+        case "Add Role":
           addRole();
           break;
-        case "Add employee":
+        case "Add Employee":
           addEmployee();
           break;
-        case "Update employee":
+        case "Update Employee Role":
           updateEmployee();
           break;
         default:
@@ -78,7 +65,7 @@ function startApp() {
 
 function viewAllEmployee() {
   connection.query(
-    'SELECT E.ID,E.FIRST_NAME,E.LAST_NAME,R.TITLE,D.NAME,R.SALARY,CONCAT(M.FIRST_NAME," ",M.LAST_NAME) AS "MANAGER" FROM  EMPLOYEE E LEFT JOIN ROLES R ON E.role_id = R.ID LEFT JOIN DEPARTMENT D ON R.department_id = D.ID LEFT JOIN EMPLOYEE M ON E.manager_id = M.ID;',
+    'SELECT E.ID,E.FIRST_NAME,E.LAST_NAME,R.TITLE,D.NAME AS DEPARTMENT ,R.SALARY,CONCAT(M.FIRST_NAME," ",M.LAST_NAME) AS "MANAGER" FROM  EMPLOYEE E LEFT JOIN ROLES R ON E.role_id = R.ID LEFT JOIN DEPARTMENT D ON R.department_id = D.ID LEFT JOIN EMPLOYEE M ON E.manager_id = M.ID;',
     function (err, data) {
       if (err) throw err;
       console.table(data);
@@ -162,7 +149,7 @@ function addRole() {
           [newRole, newRoleSalary, newRoleDepartment],
           function (err, data) {
             if (err) throw err;
-            console.table(data);
+            console.log(`Added ${newRole} to the database`);
             startApp();
           }
         );
@@ -179,7 +166,6 @@ function addEmployee() {
       value: role.id,
     }));
 
-    // Fetch managers
     connection.query(
       'SELECT DISTINCT M.ID, CONCAT(M.first_name, " ", M.last_name) AS "MANAGER" FROM employee E JOIN employee M ON E.manager_id = M.ID ORDER BY M.ID ASC;',
       function (err, managersData) {
@@ -225,7 +211,11 @@ function addEmployee() {
               [newEmpFName, newEmpLName, newEmpRole, newEmployeeM],
               function (err, data) {
                 if (err) throw err;
-                console.table(data);
+
+                console.log(
+                  `Added ${newEmpFName} ${newEmpLName} to the database`
+                );
+
                 startApp();
               }
             );
@@ -233,4 +223,58 @@ function addEmployee() {
       }
     );
   });
+}
+
+function updateEmployee() {
+  connection.query(
+    'SELECT E.ID, CONCAT(E.FIRST_NAME," ",E.LAST_NAME) AS EMPLOYEE FROM employee E',
+    function (err, data) {
+      if (err) throw err;
+      const empChoice = data.map((employee) => ({
+        name: employee.EMPLOYEE,
+        value: employee.ID, // Corrected to employee.ID
+      }));
+
+      connection.query(
+        "SELECT id, title FROM roles;",
+        function (err, roleData) {
+          if (err) throw err;
+          const newRole = roleData.map((role) => ({
+            name: role.title,
+            value: role.id,
+          }));
+
+          inquirer
+            .prompt([
+              {
+                name: "updateEmp", // Corrected from empChoice to updateEmp
+                type: "list",
+                message: "Which employee's role would you like to update?",
+                choices: empChoice,
+              },
+              {
+                name: "updateRole", // Corrected from newRole to updateRole
+                type: "list",
+                message:
+                  "What role do you want to move the selected employee to?",
+                choices: newRole,
+              },
+            ])
+            .then(({ updateEmp, updateRole }) => {
+              // Corrected variable names here
+              connection.query(
+                "UPDATE employee SET role_id = ? WHERE id = ?",
+                [updateRole, updateEmp], // Corrected variable names here
+                function (err, data) {
+                  if (err) throw err;
+
+                  console.log("Employee role updated successfully");
+                  startApp();
+                }
+              );
+            });
+        }
+      );
+    }
+  );
 }
