@@ -1,11 +1,15 @@
+--// Selects the "workforce_db" database for use
 USE workforce_db;
 
+--// Inserts department data into the department table
 INSERT INTO department (name)
 VALUES ("Sales"),
        ("Engineering"),
        ("Finance"),
        ("Legal");
 
+
+--// Inserts role data into the roles table
 INSERT INTO roles (title, salary, department_id)
 VALUES ("Sales Lead", 100000, 1),
        ("Lead Engineer", 150000, 2),
@@ -13,6 +17,8 @@ VALUES ("Sales Lead", 100000, 1),
        ("Accountant", 125000, 3),
        ("Legal Team Lead", 250000, 4);
 
+
+--// Inserts employee data into the employee table
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES ("John", "Doe", 1, 3),
        ("Mike", "Chan", 2, 1),
@@ -23,5 +29,3 @@ VALUES ("John", "Doe", 1, 3),
        ("Tom", "Allen", 4, 7), 
        ("Christian", "Eckenrode", 1, 2);
 
-       view all departments, view all roles, view all employees, add a department,
-        add a role, add an employee, and update an employee role
