@@ -1,8 +1,10 @@
+// Importing required modules
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
 require("console.table");
 require("dotenv").config();
 
+// Creating MySQL connection
 const connection = mysql.createConnection({
   host: "localhost",
   user: process.env.DB_USER,
@@ -10,13 +12,18 @@ const connection = mysql.createConnection({
   database: process.env.DB_NAME,
 });
 
+
+// Connecting to the database
 connection.connect((err) => {
   if (err) throw err;
   console.log("listening at ");
   startApp();
 });
 
+
+// Function to start the application
 function startApp() {
+    // Prompting user for action
   inquirer
     .prompt({
       name: "action",
@@ -63,6 +70,7 @@ function startApp() {
     });
 }
 
+// Function to view all employees
 function viewAllEmployee() {
   connection.query(
     'SELECT E.ID,E.FIRST_NAME,E.LAST_NAME,R.TITLE,D.NAME AS DEPARTMENT ,R.SALARY,CONCAT(M.FIRST_NAME," ",M.LAST_NAME) AS "MANAGER" FROM  EMPLOYEE E LEFT JOIN ROLES R ON E.role_id = R.ID LEFT JOIN DEPARTMENT D ON R.department_id = D.ID LEFT JOIN EMPLOYEE M ON E.manager_id = M.ID;',
@@ -74,6 +82,7 @@ function viewAllEmployee() {
   );
 }
 
+// Function to view all departments
 function viewDepartment() {
   connection.query("SELECT * FROM DEPARTMENT", function (err, data) {
     if (err) throw err;
@@ -82,6 +91,7 @@ function viewDepartment() {
   });
 }
 
+// Function to view all roles
 function viewRoles() {
   connection.query(
     'SELECT R.ID,R.TITLE,D.NAME AS "DEPARTMENT NAME",R.SALARY FROM ROLES R,DEPARTMENT D WHERE R.department_id =D.ID;',
@@ -93,6 +103,7 @@ function viewRoles() {
   );
 }
 
+// Function to add a department
 function addDepartment() {
   inquirer
     .prompt([
@@ -108,13 +119,15 @@ function addDepartment() {
         newDepartment,
         function (err, data) {
           if (err) throw err;
-          console.table(data);
+          console.log(`Added ${newDepartment} to database`);
           startApp();
         }
       );
     });
 }
 
+
+// Function to add a role
 function addRole() {
   connection.query("SELECT id, name FROM department", function (err, data) {
     if (err) throw err;
@@ -157,6 +170,7 @@ function addRole() {
   });
 }
 
+// Function to add an employee
 function addEmployee() {
   connection.query("SELECT id, title FROM roles;", function (err, rolesData) {
     if (err) throw err;
@@ -225,6 +239,8 @@ function addEmployee() {
   });
 }
 
+
+// Function to update an employee's role
 function updateEmployee() {
   connection.query(
     'SELECT E.ID, CONCAT(E.FIRST_NAME," ",E.LAST_NAME) AS EMPLOYEE FROM employee E',
@@ -232,7 +248,7 @@ function updateEmployee() {
       if (err) throw err;
       const empChoice = data.map((employee) => ({
         name: employee.EMPLOYEE,
-        value: employee.ID, // Corrected to employee.ID
+        value: employee.ID, 
       }));
 
       connection.query(
@@ -247,13 +263,13 @@ function updateEmployee() {
           inquirer
             .prompt([
               {
-                name: "updateEmp", // Corrected from empChoice to updateEmp
+                name: "updateEmp", 
                 type: "list",
                 message: "Which employee's role would you like to update?",
                 choices: empChoice,
               },
               {
-                name: "updateRole", // Corrected from newRole to updateRole
+                name: "updateRole", 
                 type: "list",
                 message:
                   "What role do you want to move the selected employee to?",
@@ -261,10 +277,10 @@ function updateEmployee() {
               },
             ])
             .then(({ updateEmp, updateRole }) => {
-              // Corrected variable names here
+              
               connection.query(
                 "UPDATE employee SET role_id = ? WHERE id = ?",
-                [updateRole, updateEmp], // Corrected variable names here
+                [updateRole, updateEmp], 
                 function (err, data) {
                   if (err) throw err;
 
