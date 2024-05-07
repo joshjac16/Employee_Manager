@@ -73,4 +73,5 @@ Choose the respective option to add a department, role, or employee. Follow the 
 Select the option to update an employee's role. Follow the prompts to select the employee and their new role. The database will be updated with the new information.
 
 ### Video Walkthrough 
+![Database schema includes tables labeled “employee,” role,” and “department.”](https://github.com/joshjac16/Employee_Manager/assets/130494193/b49c57e2-fc6d-486b-8b8f-6a039433a919)
 
